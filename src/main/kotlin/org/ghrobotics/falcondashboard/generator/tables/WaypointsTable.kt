@@ -21,10 +21,14 @@ import org.ghrobotics.lib.mathematics.twodim.geometry.y_u
 import org.ghrobotics.lib.mathematics.units.derived.degrees
 import org.ghrobotics.lib.mathematics.units.inMeters
 import org.ghrobotics.lib.mathematics.units.meters
+import org.ghrobotics.falcondashboard.Settings.rotateWaypoints
 import tornadofx.column
+import tornadofx.point
 import java.io.File
 import java.io.IOException
 import kotlin.math.round
+import kotlin.math.cos
+import kotlin.math.sin
 
 
 object WaypointsTable : TableView<Pose2d>(GeneratorView.waypoints) {
@@ -138,6 +142,39 @@ object WaypointsTable : TableView<Pose2d>(GeneratorView.waypoints) {
         }
     }
 
+    fun getRotatedPoint(pointToRotate: Pose2d, origin: Pose2d): Pose2d
+    {
+        // Assuming counterclockwise
+        var rotateBy = -Math.toRadians(origin.rotation.degrees)
+        var xdiff = pointToRotate.translation.x - origin.translation.x
+        var ydiff = pointToRotate.translation.y - origin.translation.y
+        var newx = (xdiff * cos(rotateBy) - ydiff * sin(rotateBy)) + origin.translation.x
+        var newy = (xdiff * sin(rotateBy) + ydiff * cos(rotateBy)) + origin.translation.y
+        var angle = pointToRotate.rotation.degrees - origin.rotation.degrees
+        if (angle > 180) {
+            angle -= 360
+        }
+        else if (angle < -180) {
+            angle += 360
+        }
+        return Pose2d(Translation2d(newx.meters, newy.meters), Rotation2d(Math.toRadians(angle)))
+    }
+
+    fun zeroTranslation(point: Pose2d, origin: Pose2d): Pose2d
+    {
+        var x = point.translation.x - origin.translation.x
+        var y = point.translation.y - origin.translation.y
+        return Pose2d(Translation2d(x.meters, y.meters), Rotation2d(point.rotation.radians))
+    }
+
+    fun getWriteStrFromPose(pose: Pose2d): String
+    {
+        var x = pose.translation.x.toString()
+        var y = pose.translation.y.toString()
+        var angle = pose.rotation.degrees.toString()
+        var writeStr = x + "," + y + "," + angle
+        return writeStr
+    }
 
     fun saveToFile()
     {
@@ -163,13 +200,18 @@ object WaypointsTable : TableView<Pose2d>(GeneratorView.waypoints) {
             stg.close()
             file.printWriter().use { out ->
                 out.println("X (m),Y (m),Angle (deg)")
-                for (idx in 0 until GeneratorView.waypoints.size)
+                var origin = GeneratorView.waypoints.get(0)
+                out.println(getWriteStrFromPose(Pose2d(Translation2d(0.meters, 0.meters), Rotation2d(0.0))))
+                // out.println(getWriteStrFromPose(Pose2d(Translation2d(origin.translation.x.meters, origin.translation.y.meters), Rotation2d(0.0))))
+                for (idx in 1 until GeneratorView.waypoints.size)
                 {
-                    var x = GeneratorView.waypoints.get(idx).translation.x.toString()
-                    var y = GeneratorView.waypoints.get(idx).translation.y.toString()
-                    var angle = GeneratorView.waypoints.get(idx).rotation.degrees.toString()
-                    var writeStr = x + "," + y + "," + angle
-                    out.println(writeStr)
+                    if(rotateWaypoints.value) {
+                        var point = zeroTranslation(getRotatedPoint(GeneratorView.waypoints.get(idx), origin), origin)
+                        out.println(getWriteStrFromPose(point))
+                    }
+                    else {
+                        out.println(getWriteStrFromPose(GeneratorView.waypoints.get(idx)))
+                    }
                 }
             }
         }
@@ -204,7 +246,7 @@ object WaypointsTable : TableView<Pose2d>(GeneratorView.waypoints) {
         {
             val line = lines.get(idx)
             val words = line.split(",")
-            val pose = Pose2d(words[0].toDouble().meters, words[1].toDouble().meters)
+            val pose = Pose2d(Translation2d(words[0].toDouble().meters, words[1].toDouble().meters), Rotation2d(Math.toRadians(words[2].toDouble())))
             poses.add(pose)
         }
         // Set Waypoints

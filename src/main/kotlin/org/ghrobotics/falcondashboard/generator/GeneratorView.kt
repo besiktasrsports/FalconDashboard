@@ -20,6 +20,7 @@ import kfoenix.jfxtabpane
 import org.ghrobotics.falcondashboard.*
 import org.ghrobotics.falcondashboard.Settings.purePursuit
 import org.ghrobotics.falcondashboard.Settings.clampedCubic
+import org.ghrobotics.falcondashboard.Settings.rotateWaypoints
 import org.ghrobotics.falcondashboard.Settings.endVelocity
 import org.ghrobotics.falcondashboard.Settings.maxAcceleration
 import org.ghrobotics.falcondashboard.Settings.maxCentripetalAcceleration
@@ -80,12 +81,16 @@ class GeneratorView : View() {
                 text = "Clamped Cubic"
                 bind(clampedCubic)
             }
-
             jfxcheckbox {
                 paddingAll = 5
-                text = "Adaptive Pure Pursuit"
-                bind(purePursuit)
+                text = "Rotate Waypoints"
+                bind(rotateWaypoints)
             }
+            // jfxcheckbox {
+            //     paddingAll = 5
+            //     text = "Adaptive Pure Pursuit"
+            //     bind(purePursuit)
+            // }
 
             text("Trajectory Time (s): ") {
                 alignment = Pos.CENTER_LEFT
@@ -133,15 +138,15 @@ class GeneratorView : View() {
                         WaypointsTable.loadFromFile()
                     }
                 }
-                jfxbutton {
-                    prefWidth = 290.0
-                    text = "Save To JSON"
-                    action {
-                        // find<CodeFragment>().openModal(stageStyle = StageStyle.UTILITY)
-                        val txt = TrajectoryUtil.serializeTrajectory(GeneratorView.trajectory.value)
-                        saveToJSON(txt)
-                    }
-                }
+                // jfxbutton {
+                //     prefWidth = 290.0
+                //     text = "Save To JSON"
+                //     action {
+                //         // find<CodeFragment>().openModal(stageStyle = StageStyle.UTILITY)
+                //         val txt = TrajectoryUtil.serializeTrajectory(GeneratorView.trajectory.value)
+                //         saveToJSON(txt)
+                //     }
+                // }
                 jfxbutton {
                     prefWidth = 290.0
                     text = "Generate Code"
@@ -214,6 +219,7 @@ class GeneratorView : View() {
             waypoints.onChange { update() }
             reversed.onChange { update() }
             clampedCubic.onChange { update() }
+            rotateWaypoints.onChange { update() }
             purePursuit.onChange { update() }
 
             robotLength.onChange { update() }

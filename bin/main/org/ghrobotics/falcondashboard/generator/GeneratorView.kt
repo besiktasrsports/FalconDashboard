@@ -17,9 +17,10 @@ import javafx.stage.StageStyle
 import kfoenix.jfxbutton
 import kfoenix.jfxcheckbox
 import kfoenix.jfxtabpane
-import org.ghrobotics.falcondashboard.MainView
-import org.ghrobotics.falcondashboard.Settings.autoPathFinding
+import org.ghrobotics.falcondashboard.*
+import org.ghrobotics.falcondashboard.Settings.purePursuit
 import org.ghrobotics.falcondashboard.Settings.clampedCubic
+import org.ghrobotics.falcondashboard.Settings.rotateWaypoints
 import org.ghrobotics.falcondashboard.Settings.endVelocity
 import org.ghrobotics.falcondashboard.Settings.maxAcceleration
 import org.ghrobotics.falcondashboard.Settings.maxCentripetalAcceleration
@@ -29,14 +30,11 @@ import org.ghrobotics.falcondashboard.Settings.robotLength
 import org.ghrobotics.falcondashboard.Settings.robotWidth
 import org.ghrobotics.falcondashboard.Settings.startVelocity
 import org.ghrobotics.falcondashboard.Settings.trajectoryTime
-import org.ghrobotics.falcondashboard.createNumericalEntry
 import org.ghrobotics.falcondashboard.generator.charts.PositionChart
 import org.ghrobotics.falcondashboard.generator.charts.VelocityChart
 import org.ghrobotics.falcondashboard.generator.fragments.KtCodeFragment
 import org.ghrobotics.falcondashboard.generator.fragments.WaypointFragment
 import org.ghrobotics.falcondashboard.generator.tables.WaypointsTable
-import org.ghrobotics.falcondashboard.saveToJSON
-import org.ghrobotics.falcondashboard.triggerWaypoints
 import org.ghrobotics.lib.mathematics.epsilonEquals
 import org.ghrobotics.lib.mathematics.twodim.geometry.Pose2d
 import org.ghrobotics.lib.mathematics.twodim.trajectory.FalconTrajectoryConfig
@@ -83,13 +81,17 @@ class GeneratorView : View() {
                 text = "Clamped Cubic"
                 bind(clampedCubic)
             }
-            /*
             jfxcheckbox {
                 paddingAll = 5
-                text = "Auto Path Finding (Experimental)"
-                bind(autoPathFinding)
+                text = "Rotate Waypoints"
+                bind(rotateWaypoints)
             }
-            */
+            // jfxcheckbox {
+            //     paddingAll = 5
+            //     text = "Adaptive Pure Pursuit"
+            //     bind(purePursuit)
+            // }
+
             text("Trajectory Time (s): ") {
                 alignment = Pos.CENTER_LEFT
                 bind(trajectoryTime)
@@ -136,15 +138,15 @@ class GeneratorView : View() {
                         WaypointsTable.loadFromFile()
                     }
                 }
-                jfxbutton {
-                    prefWidth = 290.0
-                    text = "Save To JSON"
-                    action {
-                        // find<CodeFragment>().openModal(stageStyle = StageStyle.UTILITY)
-                        val txt = TrajectoryUtil.serializeTrajectory(GeneratorView.trajectory.value)
-                        saveToJSON(txt)
-                    }
-                }
+                // jfxbutton {
+                //     prefWidth = 290.0
+                //     text = "Save To JSON"
+                //     action {
+                //         // find<CodeFragment>().openModal(stageStyle = StageStyle.UTILITY)
+                //         val txt = TrajectoryUtil.serializeTrajectory(GeneratorView.trajectory.value)
+                //         saveToJSON(txt)
+                //     }
+                // }
                 jfxbutton {
                     prefWidth = 290.0
                     text = "Generate Code"
@@ -217,7 +219,8 @@ class GeneratorView : View() {
             waypoints.onChange { update() }
             reversed.onChange { update() }
             clampedCubic.onChange { update() }
-            autoPathFinding.onChange { update() }
+            rotateWaypoints.onChange { update() }
+            purePursuit.onChange { update() }
 
             robotLength.onChange { update() }
             robotWidth.onChange { update() }
@@ -244,6 +247,7 @@ class GeneratorView : View() {
                 .setEndVelocity(endVelocity.value.meters.velocity)
                 .addConstraint(CentripetalAccelerationConstraint(maxCentripetalAcceleration.value))
                 .setReversed(reversed.value)
+            Settings.reversed.value = reversed.value
 
             if(clampedCubic.value) {
                 val startPose = waypoints.first()
