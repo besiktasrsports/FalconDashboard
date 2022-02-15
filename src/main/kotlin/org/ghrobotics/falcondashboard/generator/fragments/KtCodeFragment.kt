@@ -26,30 +26,30 @@ import kotlin.math.sin
 
 class KtCodeFragment : Fragment() {
 
-    // fun getRotatedPoint(pointToRotate: Pose2d, origin: Pose2d): Pose2d
-    // {
-    //     // Assuming counterclockwise
-    //     var rotateBy = -Math.toRadians(origin.rotation.degrees)
-    //     var xdiff = pointToRotate.translation.x - origin.translation.x
-    //     var ydiff = pointToRotate.translation.y - origin.translation.y
-    //     var newx = (xdiff * cos(rotateBy) - ydiff * sin(rotateBy)) + origin.translation.x
-    //     var newy = (xdiff * sin(rotateBy) + ydiff * cos(rotateBy)) + origin.translation.y
-    //     var angle = pointToRotate.rotation.degrees - origin.rotation.degrees
-    //     if (angle > 180) {
-    //         angle -= 360
-    //     }
-    //     else if (angle < -180) {
-    //         angle += 360
-    //     }
-    //     return Pose2d(Translation2d(newx.meters, newy.meters), Rotation2d(Math.toRadians(angle)))
-    // }
+    fun getRotatedPoint(pointToRotate: Pose2d, origin: Pose2d): Pose2d
+    {
+        // Assuming counterclockwise
+        var rotateBy = -Math.toRadians(origin.rotation.degrees)
+        var xdiff = pointToRotate.translation.x - origin.translation.x
+        var ydiff = pointToRotate.translation.y - origin.translation.y
+        var newx = (xdiff * cos(rotateBy) - ydiff * sin(rotateBy)) + origin.translation.x
+        var newy = (xdiff * sin(rotateBy) + ydiff * cos(rotateBy)) + origin.translation.y
+        var angle = pointToRotate.rotation.degrees - origin.rotation.degrees
+        if (angle > 180) {
+            angle -= 360
+        }
+        else if (angle < -180) {
+            angle += 360
+        }
+        return Pose2d(Translation2d(newx.meters, newy.meters), Rotation2d(Math.toRadians(angle)))
+    }
 
-    // fun zeroTranslation(point: Pose2d, origin: Pose2d): Pose2d
-    // {
-    //     var x = point.translation.x - origin.translation.x
-    //     var y = point.translation.y - origin.translation.y
-    //     return Pose2d(Translation2d(x.meters, y.meters), Rotation2d(point.rotation.radians))
-    // }
+    fun zeroTranslation(point: Pose2d, origin: Pose2d): Pose2d
+    {
+        var x = point.translation.x - origin.translation.x
+        var y = point.translation.y - origin.translation.y
+        return Pose2d(Translation2d(x.meters, y.meters), Rotation2d(point.rotation.radians))
+    }
 
     override val root = vbox {
 
@@ -91,23 +91,25 @@ class KtCodeFragment : Fragment() {
                 append("Trajectory name = TrajectoryGenerator.generateTrajectory(\nList.of(\n")
                 if(rotateWaypoints.value)
                 {
-                    // var origin = GeneratorView.waypoints[0]
-                    // append(
-                    //     "    new Pose2d(${dm.format(0.0.meters)}, " +
-                    //             "${dm.format(0.0.meters)}, new Rotation2d(" +
-                    //             "${dm.format(0.0)}))"
-                    // )
-                    // for (idx in 1 until GeneratorView.waypoints.size) 
-                    // {
-                    //     var point = zeroTranslation(getRotatedPoint(GeneratorView.waypoints.get(idx), origin), origin)
-                    //     append(
-                    //         "    new Pose2d(${dm.format(point.translation.x_u.inMeters())}, " +
-                    //                 "${dm.format(point.translation.y_u.inMeters())}, new Rotation2d(" +
-                    //                 "${dm.format(point.rotation.radians)}))"
-                    //     )
-                    //     if (idx != GeneratorView.waypoints.size-1) append(",")
-                    //     append("\n")
-                    // }
+                    var origin = GeneratorView.waypoints[0]
+                    append(
+                        "    new Pose2d(0, " +
+                                "0, new Rotation2d(" +
+                                "0))"
+                    )
+                    append(",")
+                    append("\n")
+                    for (idx in 1 until GeneratorView.waypoints.size) 
+                    {
+                        var point = zeroTranslation(getRotatedPoint(GeneratorView.waypoints.get(idx), origin), origin)
+                        append(
+                            "    new Pose2d(${dm.format(point.translation.x_u.inMeters())}, " +
+                                    "${dm.format(point.translation.y_u.inMeters())}, new Rotation2d(" +
+                                    "${dm.format(point.rotation.radians)}))"
+                        )
+                        if (idx != GeneratorView.waypoints.size-1) append(",")
+                        append("\n")
+                    }
                 }
                 else
                 {
@@ -121,7 +123,7 @@ class KtCodeFragment : Fragment() {
                         append("\n")
                     }
                 }
-                append("),${if (reversed.value)  "configReversed" else "configForward"})\n")
+                append("),${if (reversed.value)  "configReversed" else "configForward"});\n")
 
 //                append(
 //                    "    constraints = listOf(CentripetalAccelerationConstraint(${Settings.maxCentripetalAcceleration.value}.meters.acceleration),\n" +
