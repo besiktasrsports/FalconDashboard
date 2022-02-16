@@ -16,7 +16,7 @@ object Settings {
     var reversed = SimpleBooleanProperty(false)
     val clampedCubic = SimpleBooleanProperty(true)
     val rotateWaypoints = SimpleBooleanProperty(true)
-    val purePursuit = SimpleBooleanProperty(true)
+    val purePursuit = SimpleBooleanProperty(false)
     val robotWidth = SimpleDoubleProperty(Properties.kRobotWidth.value)
     val robotLength = SimpleDoubleProperty(Properties.kRobotLength.value)
     val startVelocity = SimpleDoubleProperty(0.0)
